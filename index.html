@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulator Broadcast VLAN</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; text-align: center; }
+        h2 { color: #333; }
+        .network-container { display: flex; justify-content: center; align-items: center; gap: 50px; margin-top: 40px; }
+        .column { display: flex; flex-direction: column; gap: 30px; }
+        
+        .pc-card {
+            background: white; border-radius: 8px; padding: 15px; width: 180px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 2px solid #ddd;
+            transition: all 0.3s ease;
+        }
+        .pc-card h4 { margin: 0 0 10px 0; color: #0056b3; }
+        select { width: 100%; padding: 5px; margin-bottom: 10px; border-radius: 4px; }
+        button { 
+            width: 100%; padding: 8px; background: #28a745; color: white; 
+            border: none; border-radius: 4px; cursor: pointer; font-weight: bold;
+        }
+        button:hover { background: #218838; }
+
+        .switch-card {
+            background: #343a40; color: white; padding: 40px 20px; border-radius: 10px;
+            width: 120px; font-weight: bold; font-size: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 4px solid #343a40;
+            transition: all 0.3s ease;
+        }
+
+        /* Animasi Status */
+        .sending { border-color: #ffc107 !important; background-color: #fff3cd; transform: scale(1.05); }
+        .receiving { border-color: #28a745 !important; background-color: #d4edda; transform: scale(1.05); }
+        .switch-active { border-color: #ffc107 !important; background-color: #495057; transform: scale(1.1); }
+
+        .log-container {
+            margin-top: 40px; background: white; padding: 20px; border-radius: 8px;
+            max-width: 600px; margin-left: auto; margin-right: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: left;
+        }
+        .log-box {
+            height: 150px; overflow-y: auto; background: #e9ecef; padding: 10px;
+            border-radius: 4px; font-family: monospace; font-size: 14px; color: #333;
+        }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <h2>🖥️ Simulator Inter-VLAN Broadcast</h2>
+    <p>Ubah VLAN tiap PC dan tekan "Kirim Broadcast" untuk melihat bagaimana Switch membatasi pesan.</p>
+
+    <div class="network-container">
+        <!-- Komputer Sebelah Kiri -->
+        <div class="column">
+            <div class="pc-card" id="pc1">
+                <h4>PC 1</h4>
+                <select id="vlan-pc1">
+                    <option value="10" selected>VLAN 10 (IT)</option>
+                    <option value="20">VLAN 20 (HRD)</option>
+                    <option value="30">VLAN 30 (Finance)</option>
+                </select>
+                <button onclick="sendBroadcast(1)">Kirim Broadcast</button>
+            </div>
+            <div class="pc-card" id="pc2">
+                <h4>PC 2</h4>
+                <select id="vlan-pc2">
+                    <option value="10" selected>VLAN 10 (IT)</option>
+                    <option value="20">VLAN 20 (HRD)</option>
+                    <option value="30">VLAN 30 (Finance)</option>
+                </select>
+                <button onclick="sendBroadcast(2)">Kirim Broadcast</button>
+            </div>
+            <div class="pc-card" id="pc3">
+                <h4>PC 3</h4>
+                <select id="vlan-pc3">
+                    <option value="10" selected>VLAN 10 (IT)</option>
+                    <option value="20">VLAN 20 (HRD)</option>
+                    <option value="30">VLAN 30 (Finance)</option>
+                </select>
+                <button onclick="sendBroadcast(3)">Kirim Broadcast</button>
+            </div>
+        </div>
+
+        <!-- Switch Utama -->
+        <div class="switch-card" id="central-switch">
+            SWITCH
+        </div>
+
+        <!-- Komputer Sebelah Kanan -->
+        <div class="column">
+            <div class="pc-card" id="pc4">
+                <h4>PC 4</h4>
+                <select id="vlan-pc4">
+                    <option value="10" selected>VLAN 10 (IT)</option>
+                    <option value="20">VLAN 20 (HRD)</option>
+                    <option value="30">VLAN 30 (Finance)</option>
+                </select>
+                <button onclick="sendBroadcast(4)">Kirim Broadcast</button>
+            </div>
+            <div class="pc-card" id="pc5">
+                <h4>PC 5</h4>
+                <select id="vlan-pc5">
+                    <option value="10" selected>VLAN 10 (IT)</option>
+                    <option value="20">VLAN 20 (HRD)</option>
+                    <option value="30">VLAN 30 (Finance)</option>
+                </select>
+                <button onclick="sendBroadcast(5)">Kirim Broadcast</button>
+            </div>
+            <div class="pc-card" id="pc6">
+                <h4>PC 6</h4>
+                <select id="vlan-pc6">
+                    <option value="10" selected>VLAN 10 (IT)</option>
+                    <option value="20">VLAN 20 (HRD)</option>
+                    <option value="30">VLAN 30 (Finance)</option>
+                </select>
+                <button onclick="sendBroadcast(6)">Kirim Broadcast</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Log -->
+    <div class="log-container">
+        <h3>📄 Status Log Jaringan</h3>
+        <div class="log-box" id="logBox">
+            <div class="log-entry">Sistem siap. Silakan kirim broadcast dari salah satu PC.</div>
+        </div>
+    </div>
+
+    <script>
+        function sendBroadcast(senderId) {
+            // Bersihkan animasi sebelumnya
+            document.querySelectorAll('.pc-card').forEach(el => {
+                el.classList.remove('sending', 'receiving');
+            });
+            document.getElementById('central-switch').classList.remove('switch-active');
+
+            // Ambil data pengirim
+            const senderVlan = document.getElementById(`vlan-pc${senderId}`).value;
+            const senderElement = document.getElementById(`pc${senderId}`);
+            
+            // Animasi Pengirim
+            senderElement.classList.add('sending');
+            
+            // Animasi Switch (Delay sedikit agar terlihat mengalir)
+            setTimeout(() => {
+                document.getElementById('central-switch').classList.add('switch-active');
+            }, 300);
+
+            // Cek penerima (Delay agar simulasi jaringan terasa)
+            setTimeout(() => {
+                let receivers = [];
+                
+                for (let i = 1; i <= 6; i++) {
+                    if (i !== senderId) {
+                        const targetVlan = document.getElementById(`vlan-pc${i}`).value;
+                        const targetElement = document.getElementById(`pc${i}`);
+                        
+                        // Jika VLAN sama, maka terima broadcast
+                        if (targetVlan === senderVlan) {
+                            targetElement.classList.add('receiving');
+                            receivers.push(`PC ${i}`);
+                        }
+                    }
+                }
+
+                // Tulis ke Log
+                updateLog(senderId, senderVlan, receivers);
+                
+                // Matikan animasi Switch setelah selesai
+                setTimeout(() => {
+                    document.getElementById('central-switch').classList.remove('switch-active');
+                }, 800);
+
+            }, 800);
+        }
+
+        function updateLog(senderId, vlan, receivers) {
+            const logBox = document.getElementById('logBox');
+            const time = new Date().toLocaleTimeString();
+            let msg = `[${time}] PC ${senderId} mengirim broadcast di VLAN ${vlan}. `;
+            
+            if (receivers.length > 0) {
+                msg += `<span style="color: green;">Diterima oleh: ${receivers.join(', ')}.</span> `;
+                msg += `Ditolak oleh PC di VLAN lain.`;
+            } else {
+                msg += `<span style="color: red;">Tidak ada PC lain di VLAN ${vlan}. Broadcast diabaikan.</span>`;
+            }
+
+            // Tambahkan pesan ke log
+            const newLog = document.createElement('div');
+            newLog.className = 'log-entry';
+            newLog.innerHTML = msg;
+            logBox.prepend(newLog); // Taruh di atas
+        }
+    </script>
+</body>
+</html>
